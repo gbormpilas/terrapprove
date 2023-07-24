@@ -1,0 +1,13 @@
+rules:
+  - provider: google
+    resource: google_container_cluster
+    actions:
+      - delete
+  - provider: foo-provider
+    resource: willnotexist
+    actions:
+      - create
+  - provider: registry.terraform.io/hashicorp/local
+    resource: local_file
+    actions:
+      - create
