@@ -62,6 +62,13 @@ func TestPlanJsonLoad(t *testing.T) {
 func TestPlanAllowed(t *testing.T) {
 	plan := readPlanFile("../../tests/plan.json")
 	rs := readRulesFile("../../tests/rules.yaml")
-
 	assert.Equal(t, false, rs.planAllowed(&plan), "Plan should not be approved")
+
+	plan = readPlanFile("../../tests/pets/plan.json")
+
+	rs = readRulesFile("../../tests/pets/disapprove.yaml")
+	assert.Equal(t, false, rs.planAllowed(&plan), "Plan should not be approved")
+
+	rs = readRulesFile("../../tests/pets/approve.yaml")
+	assert.Equal(t, true, rs.planAllowed(&plan), "Plan should be approved")
 }
