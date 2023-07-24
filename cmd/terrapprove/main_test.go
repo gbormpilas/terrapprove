@@ -58,3 +58,10 @@ func TestPlanJsonLoad(t *testing.T) {
 		t.Errorf("Unmarshal failed")
 	}
 }
+
+func TestPlanAllowed(t *testing.T) {
+	plan := readPlanFile("../../tests/plan.json")
+	rs := readRulesFile("../../tests/rules.yaml")
+
+	assert.Equal(t, false, rs.planAllowed(&plan), "Plan should not be approved")
+}

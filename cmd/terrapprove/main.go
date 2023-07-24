@@ -40,8 +40,28 @@ func main() {
 
 	flag.Parse()
 
-	// read plan
-	file, err := ioutil.ReadFile(*planFile)
+	plan := readPlanFile(*planFile)
+	rs := readRulesFile(*rulesFile)
+
+	if rs.planAllowed(&plan) {
+		fmt.Println("I approve")
+	} else {
+		fmt.Println("Plan not allowed")
+		os.Exit(42)
+	}
+}
+
+func (rs RuleSet) planAllowed(plan *tfjson.Plan) bool {
+	for _, rule := range rs.Rules {
+		if !rule.evaluate(plan) {
+			return false
+		}
+	}
+	return true
+}
+
+func readPlanFile(path string) tfjson.Plan {
+	file, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(fmt.Errorf("Could not read plan file: %v", err))
 	}
@@ -51,9 +71,11 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("failed to unmarshal plan json: %v", err))
 	}
+	return plan
+}
 
-	//read rules
-	rulefile, err := ioutil.ReadFile(*rulesFile)
+func readRulesFile(path string) RuleSet {
+	rulefile, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(fmt.Errorf("Could not read rules file: %v", err))
 	}
@@ -63,12 +85,5 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("failed to unmarshal rules yaml: %v", err))
 	}
-
-	for _, rule := range rs.Rules {
-		if !rule.evaluate(&plan) {
-			fmt.Println("Plan not allowed")
-			os.Exit(42)
-		}
-	}
-	fmt.Println("I approve")
+	return rs
 }
