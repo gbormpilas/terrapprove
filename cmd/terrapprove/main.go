@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/go-yaml/yaml"
 	tfjson "github.com/hashicorp/terraform-json"
+	"github.com/hashicorp/terraform-registry-address"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -15,6 +16,14 @@ type Rule struct {
 	Provider string         `yaml:"provider"`
 	Resource string         `yaml:"resource"`
 	Actions  tfjson.Actions `yaml:"actions"`
+}
+
+func (rule *Rule) validateProvider() {
+	provider := tfaddr.MustParseProviderSource(rule.Provider)
+	if !provider.HasKnownNamespace() {
+		panic(fmt.Sprintf("Could not parse provider source %v: unknown namespace", rule.Provider))
+	}
+	rule.Provider = provider.String()
 }
 
 func (rule Rule) evaluate(plan *tfjson.Plan) bool {
@@ -34,6 +43,12 @@ type RuleSet struct {
 	Rules []Rule `yaml:"rules"`
 }
 
+func (rs *RuleSet) validateRules() {
+	for _, rule := range rs.Rules {
+		rule.validateProvider()
+	}
+}
+
 func main() {
 	var planFile = flag.String("plan", "plan.json", "Path to terraform json plan file")
 	var rulesFile = flag.String("rules", "rules.yaml", "Path to rules yaml file")
@@ -42,6 +57,8 @@ func main() {
 
 	plan := readPlanFile(*planFile)
 	rs := readRulesFile(*rulesFile)
+
+	rs.validateRules()
 
 	if rs.planAllowed(&plan) {
 		fmt.Println("I approve")

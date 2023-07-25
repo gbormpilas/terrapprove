@@ -1,9 +1,9 @@
 rules:
-  - provider: google
+  - provider: hashicorp/google
     resource: google_container_cluster
     actions:
       - delete
-  - provider: foo-provider
+  - provider: foo-cloud/foo-provider
     resource: willnotexist
     actions:
       - create

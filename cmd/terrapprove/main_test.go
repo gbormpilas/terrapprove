@@ -18,32 +18,35 @@ func TestRulesYamlParsing(t *testing.T) {
 	}
 
 	var rs RuleSet
-
 	err = yaml.Unmarshal(rulefile, &rs)
-
 	if err != nil {
 		t.Errorf("failed to unmarshal yaml")
 	}
 
-	rules := []Rule{{
-		Provider: "google",
-		Resource: "google_container_cluster",
-		Actions:  tfjson.Actions{tfjson.ActionDelete},
-	},
-		{
-			Provider: "foo-provider",
-			Resource: "willnotexist",
-			Actions:  tfjson.Actions{tfjson.ActionCreate},
-		},
-		{
-			Provider: "registry.terraform.io/hashicorp/local",
-			Resource: "local_file",
-			Actions:  tfjson.Actions{tfjson.ActionCreate},
-		},
-	}
+	rs.validateRules()
 
-	assert.Equal(t, rules, rs.Rules, "The yaml rules does not agree with the original")
+	rsTest := RuleSet{
+		Rules: []Rule{{
+			Provider: "hashicorp/google",
+			Resource: "google_container_cluster",
+			Actions:  tfjson.Actions{tfjson.ActionDelete},
+		},
+			{
+				Provider: "foo-cloud/foo-provider",
+				Resource: "willnotexist",
+				Actions:  tfjson.Actions{tfjson.ActionCreate},
+			},
+			{
+				Provider: "registry.terraform.io/hashicorp/local",
+				Resource: "local_file",
+				Actions:  tfjson.Actions{tfjson.ActionCreate},
+			},
+		}}
+	rsTest.validateRules()
+
+	assert.Equal(t, rsTest, rs, "The yaml rules does not agree with the original")
 }
+
 func TestPlanJsonLoad(t *testing.T) {
 	// read plan
 	file, err := ioutil.ReadFile("../../tests/plan.json")
