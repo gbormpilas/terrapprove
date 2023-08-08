@@ -1,14 +1,26 @@
-package main
+package terrapprove
 
 import (
-	"encoding/json"
-	"io/ioutil"
-	"testing"
-
 	"github.com/go-yaml/yaml"
 	tfjson "github.com/hashicorp/terraform-json"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"testing"
 )
+
+func TestPlanAllowed(t *testing.T) {
+	plan := ReadPlanFile("../../tests/plan.json")
+	rs := ReadRulesFile("../../tests/rules.yaml")
+	assert.Equal(t, false, rs.PlanAllowed(&plan), "Plan should not be approved")
+
+	plan = ReadPlanFile("../../tests/pets/plan.json")
+
+	rs = ReadRulesFile("../../tests/pets/disapprove.yaml")
+	assert.Equal(t, false, rs.PlanAllowed(&plan), "Plan should not be approved")
+
+	rs = ReadRulesFile("../../tests/pets/approve.yaml")
+	assert.Equal(t, true, rs.PlanAllowed(&plan), "Plan should be approved")
+}
 
 func TestRulesYamlParsing(t *testing.T) {
 	//read rules
@@ -23,7 +35,7 @@ func TestRulesYamlParsing(t *testing.T) {
 		t.Errorf("failed to unmarshal yaml")
 	}
 
-	rs.validateRules()
+	rs.ValidateRules()
 
 	rsTest := RuleSet{
 		Rules: []Rule{{
@@ -42,36 +54,7 @@ func TestRulesYamlParsing(t *testing.T) {
 				Actions:  tfjson.Actions{tfjson.ActionCreate},
 			},
 		}}
-	rsTest.validateRules()
+	rsTest.ValidateRules()
 
 	assert.Equal(t, rsTest, rs, "The yaml rules does not agree with the original")
-}
-
-func TestPlanJsonLoad(t *testing.T) {
-	// read plan
-	file, err := ioutil.ReadFile("../../tests/plan.json")
-	if err != nil {
-		t.Fatalf("could not read plan file")
-	}
-
-	plan := tfjson.Plan{}
-
-	err = json.Unmarshal([]byte(file), &plan)
-	if err != nil {
-		t.Errorf("Unmarshal failed")
-	}
-}
-
-func TestPlanAllowed(t *testing.T) {
-	plan := readPlanFile("../../tests/plan.json")
-	rs := readRulesFile("../../tests/rules.yaml")
-	assert.Equal(t, false, rs.planAllowed(&plan), "Plan should not be approved")
-
-	plan = readPlanFile("../../tests/pets/plan.json")
-
-	rs = readRulesFile("../../tests/pets/disapprove.yaml")
-	assert.Equal(t, false, rs.planAllowed(&plan), "Plan should not be approved")
-
-	rs = readRulesFile("../../tests/pets/approve.yaml")
-	assert.Equal(t, true, rs.planAllowed(&plan), "Plan should be approved")
 }
