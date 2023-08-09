@@ -21,15 +21,16 @@ func (rule *Rule) validateProvider() {
 	rule.Provider = provider.String()
 }
 
-func (rule Rule) evaluate(plan *tfjson.Plan) bool {
+func (rule Rule) violations(plan *tfjson.Plan) []tfjson.ResourceChange {
+	ans := make([]tfjson.ResourceChange, 0)
 	for _, c := range plan.ResourceChanges {
 		if c.ProviderName == rule.Provider {
 			if c.Type == rule.Resource {
 				if reflect.DeepEqual(c.Change.Actions, rule.Actions) {
-					return false
+					ans = append(ans, *c)
 				}
 			}
 		}
 	}
-	return true
+	return ans
 }

@@ -11,3 +11,4 @@ rules:
     resource: local_file
     actions:
       - create
+isAllowList: false

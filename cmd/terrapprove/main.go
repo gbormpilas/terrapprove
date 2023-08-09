@@ -18,10 +18,15 @@ func main() {
 
 	rs.ValidateRules()
 
-	if rs.PlanAllowed(&plan) {
+	if violations, isAllowList := rs.PlanViolations(&plan); len(violations) == 0 {
 		fmt.Println("I approve")
 	} else {
-		fmt.Println("Plan not allowed")
+		fmt.Println("Plan not allowed, the following are the found violations:")
+		fmt.Printf("This is an allow list: %v\n", isAllowList)
+		for _, v := range violations {
+			fmt.Printf("%+v action for address: %+v and Provider: %+v\n", v.Change.Actions, v.Address, v.ProviderName)
+		}
+
 		os.Exit(42)
 	}
 }

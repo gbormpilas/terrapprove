@@ -11,15 +11,29 @@ import (
 func TestPlanAllowed(t *testing.T) {
 	plan := ReadPlanFile("../../tests/plan.json")
 	rs := ReadRulesFile("../../tests/rules.yaml")
-	assert.Equal(t, false, rs.PlanAllowed(&plan), "Plan should not be approved")
+	violations, _ := rs.PlanViolations(&plan)
+	allowed := len(violations) == 0
+
+	assert.Equal(t, false, allowed, "Plan should not be approved")
+
+	rs = ReadRulesFile("../../tests/allow_list.yaml")
+	violations, _ = rs.PlanViolations(&plan)
+	allowed = len(violations) == 0
+
+	assert.Equal(t, true, allowed, "Plan should be approved")
 
 	plan = ReadPlanFile("../../tests/pets/plan.json")
-
 	rs = ReadRulesFile("../../tests/pets/disapprove.yaml")
-	assert.Equal(t, false, rs.PlanAllowed(&plan), "Plan should not be approved")
+	violations, _ = rs.PlanViolations(&plan)
+	allowed = len(violations) == 0
+
+	assert.Equal(t, false, allowed, "Plan should not be approved")
 
 	rs = ReadRulesFile("../../tests/pets/approve.yaml")
-	assert.Equal(t, true, rs.PlanAllowed(&plan), "Plan should be approved")
+	violations, _ = rs.PlanViolations(&plan)
+	allowed = len(violations) == 0
+
+	assert.Equal(t, true, allowed, "Plan should be approved")
 }
 
 func TestRulesYamlParsing(t *testing.T) {
